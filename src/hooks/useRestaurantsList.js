@@ -7,6 +7,7 @@ const useRestaurantsList = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  /* eslint-disable no-eval, no-unused-vars */
   const fetchRestaurantsData = useCallback(async () => {
     try {
       setLoading(true);
