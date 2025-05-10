@@ -56,6 +56,8 @@ A responsive and dynamic restaurant menu application inspired by Swiggy. Built w
 
 - To overcome this, [Chetannada](https://github.com/chetannada) created FoodFire Server, a proxy server that securely fetches data from Swiggy and provides it to the client without CORS issues.
 
+- `GitHub`: [FoodFire Server on GitHub](https://github.com/chetannada/FoodFire-Server)
+
 ## 🚦 Project Structure
 
 ```push
