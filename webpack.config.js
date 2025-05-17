@@ -29,7 +29,9 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: "./public/index.html",
     }),
-    new Dotenv(),
+     new Dotenv({
+      systemvars: true, // 👈 This allows Webpack to use Netlify's environment variables
+    }),
   ],
   devServer: {
     static: path.join(__dirname, "dist"),
