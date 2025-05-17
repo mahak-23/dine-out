@@ -1,3 +1,5 @@
+import React from "react";
+
 export default function EmptyCart() {
   return (
     <div className="w-[60%]">

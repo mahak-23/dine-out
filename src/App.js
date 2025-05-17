@@ -1,6 +1,6 @@
 import React, { lazy, Suspense, useEffect, useState } from "react";
 import { createBrowserRouter, Outlet } from "react-router-dom";
-import UserContext from "./context/userContext";
+import { UserProvider } from "./context/userContext";
 
 // redux store
 import { Provider } from "react-redux";
@@ -14,31 +14,20 @@ import RestaurantMenu from "./components/RestaurantMenu";
 import Error from "./components/Error";
 import Login from "./components/Login";
 import Cart from "./components/Cart";
+import Signup from "./components/Signup";
 const About = lazy(() => import("./components/About"));
 const Contact = lazy(() => import("./components/Contact"));
 
 const App = () => {
-  const [userName, setUserName] = useState();
-
-  // Authentication Logic
-  useEffect(() => {
-    // Make an API Call and send username and password
-    const data = {
-      name: "Guest User",
-    };
-
-    setUserName(data.name);
-  }, []);
-
   return (
     <Provider store={appStore}>
-      <UserContext.Provider value={{ loggedInUser: userName, setUserName }}>
+      <UserProvider>
         <div className="h-[calc(100vh-90px)] w-full mt-[70px]">
           <Header />
           <Outlet />
           <Footer />
         </div>
-      </UserContext.Provider>
+      </UserProvider>
     </Provider>
   );
 };
@@ -96,7 +85,7 @@ export const appRouters = createBrowserRouter([
     element: <Login />,
   },
   {
-    path: "/hello",
-    element: <h1>Hello, World!!</h1>,
+    path: "/signup",
+    element: <Signup />,
   },
 ]);

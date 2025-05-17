@@ -55,7 +55,7 @@ const User = () => {
   ) : (
     <div className="flex flex-col md:flex-row items-center md:items-start justify-center gap-6 p-6 bg-white rounded-xl shadow-md w-full max-w-4xl">
       {/* Left Profile Section */}
-      <div className="flex flex-col items-center text-center md:text-left md:items-start gap-4">
+      <div className="flex flex-col items-center text-center md:text-left  gap-4">
         <h1 className="text-2xl font-bold">About Me</h1>
         <a
           href={GiTHUB_LINK}
@@ -94,7 +94,8 @@ const User = () => {
           <h3 className="text-lg font-semibold">Skills</h3>
           <div className="flex flex-wrap gap-2">
             {[
-              "React",
+              "React.js",
+              "Next.js",
               "JavaScript",
               "HTML",
               "CSS",

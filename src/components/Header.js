@@ -1,3 +1,4 @@
+// Header.js
 import React, { useState, useContext, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -16,7 +17,7 @@ import { MdClose, MdMenu, MdKeyboardArrowDown } from "react-icons/md";
 import useOnline from "../hooks/useOnline";
 
 // context
-import UserContext from "../context/userContext";
+import { UserContext } from "../context/userContext";
 
 const foodLogo = "https://i.ibb.co/xtjxxVQ2/food-logo.png";
 
@@ -25,7 +26,7 @@ const Header = () => {
   const [editMode, setEditMode] = useState(false);
   const [newUsername, setNewUsername] = useState("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const { loggedInUser, setUserName } = useContext(UserContext);
+  const { user, updateUsername, logout, loader } = useContext(UserContext);
   const totalItems = useSelector((store) => store.cart.totalItems);
   const navigate = useNavigate();
   const location = useLocation();
@@ -47,20 +48,26 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Update username
-  const handleUpdateUser = () => {
-    if (newUsername.trim() !== "") {
-      setUserName(newUsername);
+  useEffect(() => {
+    if (!user) {
+      setDropdownOpen(false);
+    }
+  }, [user]);
+
+  const handleUpdateUser = async () => {
+    if (newUsername.trim()) {
+      await updateUsername(newUsername);
       setEditMode(false);
       setNewUsername("");
       setDropdownOpen(false);
     }
   };
 
-  const handleLogout = () => {
-    setUserName("");
+  const handleLogout = async () => {
+    await logout();
     navigate("/login");
     setSidebarOpen(false);
+    setEditMode(false);
   };
 
   const navLinks = [
@@ -72,7 +79,7 @@ const Header = () => {
   return (
     <div className="w-full flex justify-between items-center px-4 py-3 bg-[#f18500] fixed top-0 z-[1000] h-[70px] shadow-md">
       {/* Logo */}
-      <Link to="/" className="flex items-center cursor-pointerr">
+      <Link to="/" className="flex items-center cursor-pointer">
         <img
           src={foodLogo}
           alt="Food Logo"
@@ -110,74 +117,88 @@ const Header = () => {
         </Link>
 
         {/* User Profile with Dropdown */}
-        <div className="relative ml-4 text-[14px]" ref={dropdownRef}>
-          <button
-            onClick={() => setDropdownOpen((prev) => !prev)}
-            className="flex items-center gap-2 bg-white text-[#f18500] font-semibold px-4 py-2 rounded-full hover:bg-gray-100 transition-all"
-          >
-            <div
-              className={`w-3 h-3 rounded-full ${
-                isOnline ? "bg-green-500" : "bg-red-500"
-              }`}
-            ></div>
-            <span className="max-w-[100px] truncate">
-              {loggedInUser || "Profile"}
-            </span>
-            <MdKeyboardArrowDown size={20} />
-          </button>
+        {user ? (
+          <div className="relative ml-4 text-[14px]" ref={dropdownRef}>
+            <button
+              onClick={() => setDropdownOpen((prev) => !prev)}
+              className="flex items-center gap-2 bg-white text-[#f18500] font-semibold px-4 py-2 rounded-full hover:bg-gray-100 transition-all"
+            >
+              <div
+                className={`w-3 h-3 rounded-full ${
+                  isOnline ? "bg-green-500" : "bg-red-500"
+                }`}
+              ></div>
+              <span className="max-w-[100px] truncate">
+                {user.displayName || "Profile"}
+              </span>
+              <MdKeyboardArrowDown size={20} />
+            </button>
 
-          {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg z-50 overflow-hidden">
-              <button
-                className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-100"
-                onClick={() => {
-                  setEditMode(true);
-                  setDropdownOpen(false);
-                }}
-              >
-                Edit Profile
-              </button>
-              <button
-                className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-100"
-                onClick={() => {
-                  navigate("/login");
-                  setDropdownOpen(false);
-                }}
-              >
-                Logout
-              </button>
-            </div>
-          )}
-
-          {editMode && (
-            <div className="absolute right-0 mt-2 w-[250px] bg-white p-5 rounded-lg shadow-lg z-50 flex flex-col items-center">
-              <div className="flex items-center justify-between w-full mb-4">
-                <h3 className="font-bold text-[14px] text-[#333]">
-                  Edit Username
-                </h3>
+            {dropdownOpen && (
+              <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg z-50 overflow-hidden">
                 <button
-                  className="text-gray-500 hover:text-black"
-                  onClick={() => setEditMode(false)}
+                  className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-100"
+                  onClick={() => {
+                    setEditMode(true);
+                    setDropdownOpen(false);
+                  }}
                 >
-                  <MdClose size={20} />
+                  Edit Profile
+                </button>
+                <button
+                  className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-100"
+                  onClick={handleLogout}
+                >
+                  Logout
                 </button>
               </div>
-              <input
-                type="text"
-                placeholder="New Username"
-                value={newUsername}
-                onChange={(e) => setNewUsername(e.target.value)}
-                className="text-[14px] text-slate-700 w-full border border-gray-300 rounded p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-[#f18500]"
-              />
-              <button
-                onClick={handleUpdateUser}
-                className="text-[14px] bg-[#f18500] hover:bg-[#e07000] text-white font-semibold py-2 w-full rounded transition-all"
-              >
-                Save
-              </button>
-            </div>
-          )}
-        </div>
+            )}
+
+            {editMode && (
+              <div className="absolute right-0 mt-2 w-[250px] bg-white p-5 rounded-lg shadow-lg z-50 flex flex-col items-center">
+                <div className="flex items-center justify-between w-full mb-4">
+                  <h3 className="font-bold text-[14px] text-[#333]">
+                    Edit Username
+                  </h3>
+                  <button
+                    className="text-gray-500 hover:text-black"
+                    onClick={() => setEditMode(false)}
+                  >
+                    <MdClose size={20} />
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  placeholder="New Username"
+                  value={newUsername}
+                  onChange={(e) => setNewUsername(e.target.value)}
+                  className="text-[14px] text-slate-700 w-full border border-gray-300 rounded p-2 mb-4 focus:outline-none focus:ring-2 focus:ring-[#f18500]"
+                />
+                <button
+                  onClick={handleUpdateUser}
+                  className="text-[14px] bg-[#f18500] hover:bg-[#e07000] text-white font-semibold py-2 w-full rounded transition-all"
+                  disabled={loader}
+                >
+                  {loader ? "Processing..." : "Save"}
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="relative ml-4 text-[14px]" ref={dropdownRef}>
+            <button
+              onClick={() => navigate("/login")}
+              className="flex items-center gap-2 bg-white text-[#f18500] font-semibold px-4 py-2 rounded-full hover:bg-gray-100 transition-all"
+            >
+              <div
+                className={`w-3 h-3 rounded-full ${
+                  isOnline ? "bg-green-500" : "bg-red-500"
+                }`}
+              ></div>
+              <span className="max-w-[100px] truncate">Login</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Mobile Menu Button */}
@@ -230,20 +251,22 @@ const Header = () => {
               </span>
             )}
           </Link>
-          <div className="mt-2 flex items-center gap-2">
-            <div
-              className={`w-3 h-3 rounded-full ${
-                isOnline ? "bg-green-500" : "bg-red-500"
-              }`}
-            ></div>
-            <span className="max-w-[100px] truncate">
-              {loggedInUser || "Guest"}
-            </span>
-            <FaEdit
-              className="ml-2 cursor-pointer text-gray-600"
-              onClick={() => setEditMode(true)}
-            />
-          </div>
+          {user && (
+            <div className="mt-2 flex items-center gap-2">
+              <div
+                className={`w-3 h-3 rounded-full ${
+                  isOnline ? "bg-green-500" : "bg-red-500"
+                }`}
+              ></div>
+              <span className="max-w-[100px] truncate">
+                {user.displayName || "Guest"}
+              </span>
+              <FaEdit
+                className="ml-2 cursor-pointer text-gray-600"
+                onClick={() => setEditMode(true)}
+              />
+            </div>
+          )}
 
           {editMode && (
             <div className="mt-2 flex flex-col items-center py-2 px-4 rounded-md border-2 border-solid">
@@ -268,12 +291,14 @@ const Header = () => {
               <button
                 onClick={handleUpdateUser}
                 className="text-[14px] bg-[#f18500] hover:bg-[#e07000] text-white font-semibold py-2 w-full rounded transition-all"
+                disabled={loader}
               >
-                Save
+                {loader ? "Processing..." : "Save"}
               </button>
             </div>
           )}
-          {loggedInUser ? (
+
+          {user ? (
             <button
               onClick={handleLogout}
               className="text-[14px] bg-[#f18500] hover:bg-[#e07000] text-white font-semibold py-2 w-full rounded transition-all"

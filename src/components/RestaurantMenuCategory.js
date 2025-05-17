@@ -1,3 +1,5 @@
+import React from "react";
+
 // child component
 import RestaurantMenuItemList from "./RestaurantMenuItemList";
 
